@@ -1,4 +1,4 @@
-package storm.starter.common.bolt;
+package storm.starter.step3.topwords;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,21 +22,21 @@ public class MergeObjects implements IBasicBolt {
 
 	public static Logger LOG = Logger.getLogger(MergeObjects.class);
 
-	private List<List<Object>> _rankings = new ArrayList<List<Object>>();
+	private final List<List<Object>> _rankings = new ArrayList<List<Object>>();
 	int _count = 10;
 	Long _lastTime;
 
-	public MergeObjects(int n) {
+	public MergeObjects(final int n) {
 		_count = n;
 	}
 
-	private int _compare(List<Long> one, List<Long> two) {
+	private int _compare(final List<Long> one, final List<Long> two) {
 		return two.get(1).compareTo(one.get(1));
 	}
 
-	private Integer _find(Object tag) {
+	private Integer _find(final Object tag) {
 		for (int i = 0; i < _rankings.size(); ++i) {
-			Object cur = _rankings.get(i).get(0);
+			final Object cur = _rankings.get(i).get(0);
 			if (cur.equals(tag)) {
 				return i;
 			}
@@ -46,18 +46,17 @@ public class MergeObjects implements IBasicBolt {
 	}
 
 	@Override
-	public void prepare(@SuppressWarnings("rawtypes") Map stormConf,
-			TopologyContext context) {
+	public void prepare(@SuppressWarnings("rawtypes") final Map stormConf, final TopologyContext context) {
 
 	}
 
 	@Override
-	public void execute(Tuple tuple, BasicOutputCollector collector) {
+	public void execute(final Tuple tuple, final BasicOutputCollector collector) {
 
-		List<List> merging = (List) JSONValue.parse(tuple.getString(0));
-		for (List pair : merging) {
+		final List<List> merging = (List) JSONValue.parse(tuple.getString(0));
+		for (final List pair : merging) {
 
-			Integer existingIndex = _find(pair.get(0));
+			final Integer existingIndex = _find(pair.get(0));
 			if (null != existingIndex) {
 				_rankings.set(existingIndex, pair);
 			} else {
@@ -68,7 +67,7 @@ public class MergeObjects implements IBasicBolt {
 
 			Collections.sort(_rankings, new Comparator<List>() {
 				@Override
-				public int compare(List o1, List o2) {
+				public int compare(final List o1, final List o2) {
 					return _compare(o1, o2);
 				}
 			});
@@ -79,9 +78,9 @@ public class MergeObjects implements IBasicBolt {
 
 		}
 
-		long currentTime = System.currentTimeMillis();
+		final long currentTime = System.currentTimeMillis();
 		if (_lastTime == null || currentTime >= _lastTime + 2000) {
-			String fullRankings = JSONValue.toJSONString(_rankings);
+			final String fullRankings = JSONValue.toJSONString(_rankings);
 			collector.emit(new Values(fullRankings));
 			LOG.info("Rankings: " + fullRankings);
 			_lastTime = currentTime;
@@ -93,7 +92,7 @@ public class MergeObjects implements IBasicBolt {
 	}
 
 	@Override
-	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+	public void declareOutputFields(final OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("list"));
 	}
 

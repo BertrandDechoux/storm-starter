@@ -1,4 +1,7 @@
-package storm.starter.common.spout;
+package storm.starter.step4.wordcount;
+
+import java.util.Map;
+import java.util.Random;
 
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -7,8 +10,6 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
-import java.util.Map;
-import java.util.Random;
 
 public class RandomSentenceSpout implements IRichSpout {
 	private static final long serialVersionUID = 1L;
@@ -22,8 +23,8 @@ public class RandomSentenceSpout implements IRichSpout {
 	}
 
 	@Override
-	public void open(@SuppressWarnings("rawtypes") Map conf, TopologyContext context,
-			SpoutOutputCollector collector) {
+	public void open(@SuppressWarnings("rawtypes") final Map conf, final TopologyContext context,
+			final SpoutOutputCollector collector) {
 		_collector = collector;
 		_rand = new Random();
 	}
@@ -31,11 +32,10 @@ public class RandomSentenceSpout implements IRichSpout {
 	@Override
 	public void nextTuple() {
 		Utils.sleep(100);
-		String[] sentences = new String[] { "the cow jumped over the moon",
-				"an apple a day keeps the doctor away",
-				"four score and seven years ago",
+		final String[] sentences = new String[] { "the cow jumped over the moon",
+				"an apple a day keeps the doctor away", "four score and seven years ago",
 				"snow white and the seven dwarfs", "i am at two with nature" };
-		String sentence = sentences[_rand.nextInt(sentences.length)];
+		final String sentence = sentences[_rand.nextInt(sentences.length)];
 		_collector.emit(new Values(sentence));
 	}
 
@@ -44,15 +44,15 @@ public class RandomSentenceSpout implements IRichSpout {
 	}
 
 	@Override
-	public void ack(Object id) {
+	public void ack(final Object id) {
 	}
 
 	@Override
-	public void fail(Object id) {
+	public void fail(final Object id) {
 	}
 
 	@Override
-	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+	public void declareOutputFields(final OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("word"));
 	}
 

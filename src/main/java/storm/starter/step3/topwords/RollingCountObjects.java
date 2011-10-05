@@ -1,4 +1,4 @@
-package storm.starter.common.bolt;
+package storm.starter.step3.topwords;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,27 +17,27 @@ import backtype.storm.utils.Utils;
 public class RollingCountObjects implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 
-	private HashMap<Object, long[]> _objectCounts = new HashMap<Object, long[]>();
-	private int _numBuckets;
+	private final HashMap<Object, long[]> _objectCounts = new HashMap<Object, long[]>();
+	private final int _numBuckets;
 	private transient Thread cleaner;
 	private OutputCollector _collector;
-	private int _trackMinutes;
+	private final int _trackMinutes;
 
-	public RollingCountObjects(int numBuckets, int trackMinutes) {
+	public RollingCountObjects(final int numBuckets, final int trackMinutes) {
 		_numBuckets = numBuckets;
 		_trackMinutes = trackMinutes;
 	}
 
-	public long totalObjects(Object obj) {
-		long[] curr = _objectCounts.get(obj);
+	public long totalObjects(final Object obj) {
+		final long[] curr = _objectCounts.get(obj);
 		long total = 0;
-		for (long l : curr) {
+		for (final long l : curr) {
 			total += l;
 		}
 		return total;
 	}
 
-	public int currentBucket(int buckets) {
+	public int currentBucket(final int buckets) {
 		return (currentSecond() / secondsPerBucket(buckets)) % buckets;
 	}
 
@@ -45,17 +45,17 @@ public class RollingCountObjects implements IRichBolt {
 		return (int) (System.currentTimeMillis() / 1000);
 	}
 
-	public int secondsPerBucket(int buckets) {
+	public int secondsPerBucket(final int buckets) {
 		return (_trackMinutes * 60 / buckets);
 	}
 
-	public long millisPerBucket(int buckets) {
+	public long millisPerBucket(final int buckets) {
 		return (long) secondsPerBucket(buckets) * 1000;
 	}
 
 	@Override
-	public void prepare(@SuppressWarnings("rawtypes") Map stormConf, TopologyContext context,
-			OutputCollector collector) {
+	public void prepare(@SuppressWarnings("rawtypes") final Map stormConf, final TopologyContext context,
+			final OutputCollector collector) {
 		_collector = collector;
 		cleaner = new Thread(new Runnable() {
 			@Override
@@ -63,16 +63,16 @@ public class RollingCountObjects implements IRichBolt {
 				Integer lastBucket = currentBucket(_numBuckets);
 
 				while (true) {
-					int currBucket = currentBucket(_numBuckets);
+					final int currBucket = currentBucket(_numBuckets);
 					if (currBucket != lastBucket) {
-						int bucketToWipe = (currBucket + 1) % _numBuckets;
+						final int bucketToWipe = (currBucket + 1) % _numBuckets;
 						synchronized (_objectCounts) {
-							Set<Object> objs = new HashSet<Object>(_objectCounts.keySet());
-							for (Object obj : objs) {
-								long[] counts = _objectCounts.get(obj);
-								long currBucketVal = counts[bucketToWipe];
+							final Set<Object> objs = new HashSet<Object>(_objectCounts.keySet());
+							for (final Object obj : objs) {
+								final long[] counts = _objectCounts.get(obj);
+								final long currBucketVal = counts[bucketToWipe];
 								counts[bucketToWipe] = 0;
-								long total = totalObjects(obj);
+								final long total = totalObjects(obj);
 								if (currBucketVal != 0) {
 									_collector.emit(new Values(obj, total));
 								}
@@ -83,7 +83,7 @@ public class RollingCountObjects implements IRichBolt {
 						}
 						lastBucket = currBucket;
 					}
-					long delta = millisPerBucket(_numBuckets)
+					final long delta = millisPerBucket(_numBuckets)
 							- (System.currentTimeMillis() % millisPerBucket(_numBuckets));
 					Utils.sleep(delta);
 				}
@@ -93,10 +93,10 @@ public class RollingCountObjects implements IRichBolt {
 	}
 
 	@Override
-	public void execute(Tuple tuple) {
+	public void execute(final Tuple tuple) {
 
-		Object obj = tuple.getValue(0);
-		int bucket = currentBucket(_numBuckets);
+		final Object obj = tuple.getValue(0);
+		final int bucket = currentBucket(_numBuckets);
 		synchronized (_objectCounts) {
 			long[] curr = _objectCounts.get(obj);
 			if (curr == null) {
@@ -114,7 +114,7 @@ public class RollingCountObjects implements IRichBolt {
 	}
 
 	@Override
-	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+	public void declareOutputFields(final OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("obj", "count"));
 	}
 

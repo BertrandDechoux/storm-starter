@@ -1,4 +1,12 @@
-package storm.starter.common.bolt;
+package storm.starter.step3.topwords;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
+import org.json.simple.JSONValue;
 
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.BasicOutputCollector;
@@ -7,12 +15,6 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import org.json.simple.JSONValue;
 
 public class RankObjects implements IBasicBolt {
 	private static final long serialVersionUID = 1L;
@@ -22,30 +24,18 @@ public class RankObjects implements IBasicBolt {
 	int _count;
 	Long _lastTime = null;
 
-	public RankObjects(int n) {
+	public RankObjects(final int n) {
 		_count = n;
 	}
 
-	private int _compare(List one, List two) {
+	private int _compare(final List<Long> one, final List<Long> two) {
+		return two.get(1).compareTo(one.get(1));
+	}
 
-		long valueOne = (Long) one.get(1);
-		long valueTwo = (Long) two.get(1);
-
-		long delta = valueTwo - valueOne;
-		if (delta > 0) {
-			return 1;
-		} else if (delta < 0) {
-			return -1;
-		} else {
-			return 0;
-		}
-
-	} // end compare
-
-	private Integer _find(Object tag) {
+	private Integer _find(final Object tag) {
 		for (int i = 0; i < _rankings.size(); ++i) {
 
-			Object cur = _rankings.get(i).get(0);
+			final Object cur = _rankings.get(i).get(0);
 			if (cur.equals(tag)) {
 				return i;
 			}
@@ -57,17 +47,16 @@ public class RankObjects implements IBasicBolt {
 	}
 
 	@Override
-	public void prepare(@SuppressWarnings("rawtypes") Map stormConf,
-			TopologyContext context) {
+	public void prepare(@SuppressWarnings("rawtypes") final Map stormConf, final TopologyContext context) {
 
 	}
 
 	@Override
-	public void execute(Tuple tuple, BasicOutputCollector collector) {
+	public void execute(final Tuple tuple, final BasicOutputCollector collector) {
 
-		Object tag = tuple.getValue(0);
+		final Object tag = tuple.getValue(0);
 
-		Integer existingIndex = _find(tag);
+		final Integer existingIndex = _find(tag);
 		if (null != existingIndex) {
 			_rankings.set(existingIndex, tuple.getValues());
 		} else {
@@ -78,7 +67,7 @@ public class RankObjects implements IBasicBolt {
 
 		Collections.sort(_rankings, new Comparator<List>() {
 			@Override
-			public int compare(List o1, List o2) {
+			public int compare(final List o1, final List o2) {
 				return _compare(o1, o2);
 			}
 		});
@@ -87,7 +76,7 @@ public class RankObjects implements IBasicBolt {
 			_rankings.remove(_count);
 		}
 
-		long currentTime = System.currentTimeMillis();
+		final long currentTime = System.currentTimeMillis();
 		if (_lastTime == null || currentTime >= _lastTime + 2000) {
 			collector.emit(new Values(JSONValue.toJSONString(_rankings)));
 			_lastTime = currentTime;
@@ -99,7 +88,7 @@ public class RankObjects implements IBasicBolt {
 	}
 
 	@Override
-	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+	public void declareOutputFields(final OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("list"));
 	}
 

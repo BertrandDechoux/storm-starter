@@ -1,4 +1,4 @@
-package storm.starter.first.exclamation;
+package storm.starter.step1.bolt;
 
 import java.util.Map;
 
@@ -12,18 +12,19 @@ import backtype.storm.tuple.Values;
 
 public class ExclamationBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
-	OutputCollector _collector;
+	
+	private OutputCollector collector;
 
 	@Override
-	public void prepare(@SuppressWarnings("rawtypes") Map conf,
-			TopologyContext context, OutputCollector collector) {
-		_collector = collector;
+	public void prepare(final @SuppressWarnings("rawtypes") Map conf, final TopologyContext context,
+			final OutputCollector collector) {
+		this.collector = collector;
 	}
 
 	@Override
-	public void execute(Tuple tuple) {
-		_collector.emit(tuple, new Values(tuple.getString(0) + "!!!"));
-		_collector.ack(tuple);
+	public void execute(final Tuple tuple) {
+		collector.emit(tuple, new Values(tuple.getString(0) + "!!!"));
+		collector.ack(tuple);
 	}
 
 	@Override
@@ -31,7 +32,7 @@ public class ExclamationBolt implements IRichBolt {
 	}
 
 	@Override
-	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+	public void declareOutputFields(final OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("word"));
 	}
 
