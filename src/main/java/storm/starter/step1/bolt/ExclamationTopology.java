@@ -1,19 +1,23 @@
 package storm.starter.step1.bolt;
 
-import storm.starter.StormUtils;
+import static storm.starter.ClusterHelper.localClusterWith;
 import backtype.storm.testing.TestWordSpout;
 import backtype.storm.topology.TopologyBuilder;
 
 public class ExclamationTopology {
 
 	public static void main(final String[] args) {
-		final TopologyBuilder topologyBuilder = new TopologyBuilder();
+		final TopologyBuilder topology = new TopologyBuilder();
+		
+		final int sproutId = 1;
+		final int bolt1Id = 2;
+		final int bolt2Id = 3;
 
-		topologyBuilder.setSpout(1, new TestWordSpout(), 10);
-		topologyBuilder.setBolt(2, new ExclamationBolt(), 3).shuffleGrouping(1);
-		topologyBuilder.setBolt(3, new ExclamationBolt(), 2).shuffleGrouping(2);
+		topology.setSpout(sproutId, new TestWordSpout(), 10);
+		topology.setBolt(bolt1Id, new ExclamationBolt(), 3).shuffleGrouping(sproutId);
+		topology.setBolt(bolt2Id, new ExclamationBolt(), 2).shuffleGrouping(bolt1Id);
 
-		StormUtils.debugInLocalCluster(topologyBuilder);
+		localClusterWith(topology).debug();
 	}
 	
 }

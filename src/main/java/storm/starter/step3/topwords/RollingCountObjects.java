@@ -16,20 +16,22 @@ import backtype.storm.utils.Utils;
 
 public class RollingCountObjects implements IRichBolt {
 	private static final long serialVersionUID = 1L;
+	
+	public static final String OBJ_FIELD = "obj";
 
-	private final HashMap<Object, long[]> _objectCounts = new HashMap<Object, long[]>();
-	private final int _numBuckets;
+	private final HashMap<Object, long[]> objectCounts = new HashMap<Object, long[]>();
+	private final int numBuckets;
 	private transient Thread cleaner;
-	private OutputCollector _collector;
-	private final int _trackMinutes;
+	private OutputCollector collector;
+	private final int trackMinutes;
 
 	public RollingCountObjects(final int numBuckets, final int trackMinutes) {
-		_numBuckets = numBuckets;
-		_trackMinutes = trackMinutes;
+		this.numBuckets = numBuckets;
+		this.trackMinutes = trackMinutes;
 	}
 
 	public long totalObjects(final Object obj) {
-		final long[] curr = _objectCounts.get(obj);
+		final long[] curr = objectCounts.get(obj);
 		long total = 0;
 		for (final long l : curr) {
 			total += l;
@@ -46,7 +48,7 @@ public class RollingCountObjects implements IRichBolt {
 	}
 
 	public int secondsPerBucket(final int buckets) {
-		return (_trackMinutes * 60 / buckets);
+		return (trackMinutes * 60 / buckets);
 	}
 
 	public long millisPerBucket(final int buckets) {
@@ -56,56 +58,24 @@ public class RollingCountObjects implements IRichBolt {
 	@Override
 	public void prepare(@SuppressWarnings("rawtypes") final Map stormConf, final TopologyContext context,
 			final OutputCollector collector) {
-		_collector = collector;
-		cleaner = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Integer lastBucket = currentBucket(_numBuckets);
-
-				while (true) {
-					final int currBucket = currentBucket(_numBuckets);
-					if (currBucket != lastBucket) {
-						final int bucketToWipe = (currBucket + 1) % _numBuckets;
-						synchronized (_objectCounts) {
-							final Set<Object> objs = new HashSet<Object>(_objectCounts.keySet());
-							for (final Object obj : objs) {
-								final long[] counts = _objectCounts.get(obj);
-								final long currBucketVal = counts[bucketToWipe];
-								counts[bucketToWipe] = 0;
-								final long total = totalObjects(obj);
-								if (currBucketVal != 0) {
-									_collector.emit(new Values(obj, total));
-								}
-								if (total == 0) {
-									_objectCounts.remove(obj);
-								}
-							}
-						}
-						lastBucket = currBucket;
-					}
-					final long delta = millisPerBucket(_numBuckets)
-							- (System.currentTimeMillis() % millisPerBucket(_numBuckets));
-					Utils.sleep(delta);
-				}
-			}
-		});
+		this.collector = collector;
+		cleaner = new Thread(new CleanerRunnable(collector));
 		cleaner.start();
 	}
 
 	@Override
 	public void execute(final Tuple tuple) {
-
 		final Object obj = tuple.getValue(0);
-		final int bucket = currentBucket(_numBuckets);
-		synchronized (_objectCounts) {
-			long[] curr = _objectCounts.get(obj);
+		final int bucket = currentBucket(numBuckets);
+		synchronized (objectCounts) {
+			long[] curr = objectCounts.get(obj);
 			if (curr == null) {
-				curr = new long[_numBuckets];
-				_objectCounts.put(obj, curr);
+				curr = new long[numBuckets];
+				objectCounts.put(obj, curr);
 			}
 			curr[bucket]++;
-			_collector.emit(new Values(obj, totalObjects(obj)));
-			_collector.ack(tuple);
+			collector.emit(new Values(obj, totalObjects(obj)));
+			collector.ack(tuple);
 		}
 	}
 
@@ -115,7 +85,46 @@ public class RollingCountObjects implements IRichBolt {
 
 	@Override
 	public void declareOutputFields(final OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("obj", "count"));
+		declarer.declare(new Fields(OBJ_FIELD, "count"));
+	}
+
+	private final class CleanerRunnable implements Runnable {
+		private final OutputCollector collector;
+	
+		private CleanerRunnable(OutputCollector collector) {
+			this.collector = collector;
+		}
+	
+		@Override
+		public void run() {
+			Integer lastBucket = currentBucket(numBuckets);
+	
+			while (true) {
+				final int currBucket = currentBucket(numBuckets);
+				if (currBucket != lastBucket) {
+					final int bucketToWipe = (currBucket + 1) % numBuckets;
+					synchronized (objectCounts) {
+						final Set<Object> objs = new HashSet<Object>(objectCounts.keySet());
+						for (final Object obj : objs) {
+							final long[] counts = objectCounts.get(obj);
+							final long currBucketVal = counts[bucketToWipe];
+							counts[bucketToWipe] = 0;
+							final long total = totalObjects(obj);
+							if (currBucketVal != 0) {
+								collector.emit(new Values(obj, total));
+							}
+							if (total == 0) {
+								objectCounts.remove(obj);
+							}
+						}
+					}
+					lastBucket = currBucket;
+				}
+				final long delta = millisPerBucket(numBuckets)
+						- (System.currentTimeMillis() % millisPerBucket(numBuckets));
+				Utils.sleep(delta);
+			}
+		}
 	}
 
 }
