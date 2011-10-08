@@ -3,6 +3,7 @@ package storm.starter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import backtype.storm.generated.Bolt;
 import backtype.storm.generated.ComponentCommon;
@@ -19,16 +20,17 @@ import backtype.storm.topology.IComponent;
 import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.IRichStateSpout;
-import backtype.storm.topology.InputDeclarer;
 import backtype.storm.topology.OutputFieldsGetter;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
+
+import com.google.common.base.Preconditions;
 
 /**
  * TopologyBuilder exposes the Java API for specifying a topology for Storm to
  * execute. Topologies are Thrift structures in the end, but since the Thrift
  * API is so verbose, TopologyBuilder greatly eases the process of creating
- * topologies. 
+ * topologies.
  * 
  * <p>
  * The pattern for TopologyBuilder is to map component ids to components using
@@ -43,6 +45,8 @@ public class TopologyBuilder {
 	private Map<Integer, SpoutSpec> _spouts = new HashMap<Integer, SpoutSpec>();
 	private Map<Integer, StateSpoutSpec> _stateSpouts = new HashMap<Integer, StateSpoutSpec>();
 	private Map<Integer, Integer> _boltParallelismHints = new HashMap<Integer, Integer>();
+	
+	private Map<Integer, IComponent> _refs = new HashMap<Integer, IComponent>();
 
 	public StormTopology createTopology() {
 		Map<Integer, Bolt> boltSpecs = new HashMap<Integer, Bolt>();
@@ -62,6 +66,7 @@ public class TopologyBuilder {
 
 	/**
 	 * Define a new bolt in this topology with parallelism of just one thread.
+	 * 
 	 * @param bolt
 	 *            the bolt
 	 * @return use the returned object to declare the inputs to this component
@@ -73,6 +78,7 @@ public class TopologyBuilder {
 	/**
 	 * Define a new bolt in this topology with the specified amount of
 	 * parallelism.
+	 * 
 	 * @param bolt
 	 *            the bolt
 	 * @param parallelism_hint
@@ -85,6 +91,7 @@ public class TopologyBuilder {
 		final int id = nextId;
 		nextId++;
 		validateUnusedId(id);
+		_refs.put(id, bolt);
 		_bolts.put(id, bolt);
 		_boltParallelismHints.put(id, parallelism_hint);
 		_inputs.put(id, new HashMap<GlobalStreamId, Grouping>());
@@ -96,6 +103,7 @@ public class TopologyBuilder {
 	 * simpler to use but more restricted kind of bolt. Basic bolts are intended
 	 * for non-aggregation processing and automate the anchoring/acking process
 	 * to achieve proper reliability in the topology.
+	 * 
 	 * @param bolt
 	 *            the basic bolt
 	 * @return use the returned object to declare the inputs to this component
@@ -109,6 +117,7 @@ public class TopologyBuilder {
 	 * simpler to use but more restricted kind of bolt. Basic bolts are intended
 	 * for non-aggregation processing and automate the anchoring/acking process
 	 * to achieve proper reliability in the topology.
+	 * 
 	 * @param bolt
 	 *            the basic bolt
 	 * @param parallelism_hint
@@ -123,6 +132,7 @@ public class TopologyBuilder {
 
 	/**
 	 * Define a new spout in this topology.
+	 * 
 	 * @param spout
 	 *            the spout
 	 */
@@ -134,6 +144,7 @@ public class TopologyBuilder {
 	 * Define a new spout in this topology with the specified parallelism. If
 	 * the spout declares itself as non-distributed, the parallelism_hint will
 	 * be ignored and only one task will be allocated to this component.
+	 * 
 	 * @param parallelism_hint
 	 *            the number of tasks that should be assigned to execute this
 	 *            spout. Each task will run on a thread in a process somewhere
@@ -145,6 +156,7 @@ public class TopologyBuilder {
 		final int id = nextId;
 		nextId++;
 		validateUnusedId(id);
+		_refs.put(id, spout);
 		_spouts.put(
 				id,
 				new SpoutSpec(ComponentObject.serialized_java(Utils.serialize(spout)), getComponentCommon(spout,
@@ -159,6 +171,7 @@ public class TopologyBuilder {
 		final int id = nextId;
 		nextId++;
 		validateUnusedId(id);
+		_refs.put(id, stateSpout);
 		_stateSpouts.put(id, new StateSpoutSpec(ComponentObject.serialized_java(Utils.serialize(stateSpout)),
 				getComponentCommon(stateSpout, parallelism_hint)));
 	}
@@ -193,57 +206,81 @@ public class TopologyBuilder {
 			_boltId = boltId;
 		}
 
-		public InputDeclarer fieldsGrouping(int componentId, Fields fields) {
-			return fieldsGrouping(componentId, Utils.DEFAULT_STREAM_ID, fields);
+		@Override
+		public InputDeclarer fieldsGrouping(IComponent component, String... fields) {
+			return fieldsGrouping(component, new Fields(fields));
 		}
 
-		public InputDeclarer fieldsGrouping(int componentId, int streamId, Fields fields) {
-			return grouping(componentId, streamId, Grouping.fields(fields.toList()));
+		@Override
+		public InputDeclarer fieldsGrouping(IComponent component, int streamId, String... fields) {
+			return fieldsGrouping(component, streamId, new Fields(fields));
 		}
 
-		public InputDeclarer globalGrouping(int componentId) {
-			return globalGrouping(componentId, Utils.DEFAULT_STREAM_ID);
+		public InputDeclarer fieldsGrouping(IComponent component, Fields fields) {
+			return fieldsGrouping(component, Utils.DEFAULT_STREAM_ID, fields);
 		}
 
-		public InputDeclarer globalGrouping(int componentId, int streamId) {
-			return grouping(componentId, streamId, Grouping.fields(new ArrayList<String>()));
+		public InputDeclarer fieldsGrouping(IComponent component, int streamId, Fields fields) {
+			return grouping(component, streamId, Grouping.fields(fields.toList()));
 		}
 
-		public InputDeclarer shuffleGrouping(int componentId) {
-			return shuffleGrouping(componentId, Utils.DEFAULT_STREAM_ID);
+		public InputDeclarer globalGrouping(IComponent component) {
+			return globalGrouping(component, Utils.DEFAULT_STREAM_ID);
 		}
 
-		public InputDeclarer shuffleGrouping(int componentId, int streamId) {
-			return grouping(componentId, streamId, Grouping.shuffle(new NullStruct()));
+		public InputDeclarer globalGrouping(IComponent component, int streamId) {
+			return grouping(component, streamId, Grouping.fields(new ArrayList<String>()));
 		}
 
-		public InputDeclarer noneGrouping(int componentId) {
-			return noneGrouping(componentId, Utils.DEFAULT_STREAM_ID);
+		public InputDeclarer shuffleGrouping(IComponent component) {
+			return shuffleGrouping(component, Utils.DEFAULT_STREAM_ID);
 		}
 
-		public InputDeclarer noneGrouping(int componentId, int streamId) {
-			return grouping(componentId, streamId, Grouping.none(new NullStruct()));
+		public InputDeclarer shuffleGrouping(IComponent component, int streamId) {
+			return grouping(component, streamId, Grouping.shuffle(new NullStruct()));
 		}
 
-		public InputDeclarer allGrouping(int componentId) {
-			return allGrouping(componentId, Utils.DEFAULT_STREAM_ID);
+		public InputDeclarer noneGrouping(IComponent component) {
+			return noneGrouping(component, Utils.DEFAULT_STREAM_ID);
 		}
 
-		public InputDeclarer allGrouping(int componentId, int streamId) {
-			return grouping(componentId, streamId, Grouping.all(new NullStruct()));
+		public InputDeclarer noneGrouping(IComponent component, int streamId) {
+			return grouping(component, streamId, Grouping.none(new NullStruct()));
 		}
 
-		public InputDeclarer directGrouping(int componentId) {
-			return directGrouping(componentId, Utils.DEFAULT_STREAM_ID);
+		public InputDeclarer allGrouping(IComponent component) {
+			return allGrouping(component, Utils.DEFAULT_STREAM_ID);
 		}
 
-		public InputDeclarer directGrouping(int componentId, int streamId) {
-			return grouping(componentId, streamId, Grouping.direct(new NullStruct()));
+		public InputDeclarer allGrouping(IComponent component, int streamId) {
+			return grouping(component, streamId, Grouping.all(new NullStruct()));
 		}
 
-		private InputDeclarer grouping(int componentId, int streamId, Grouping grouping) {
-			_inputs.get(_boltId).put(new GlobalStreamId(componentId, streamId), grouping);
+		public InputDeclarer directGrouping(IComponent component) {
+			return directGrouping(component, Utils.DEFAULT_STREAM_ID);
+		}
+
+		public InputDeclarer directGrouping(IComponent component, int streamId) {
+			return grouping(component, streamId, Grouping.direct(new NullStruct()));
+		}
+
+		private InputDeclarer grouping(IComponent component, int streamId, Grouping grouping) {
+			_inputs.get(_boltId).put(new GlobalStreamId(getComponentId(component), streamId), grouping);
 			return this;
+		}
+
+		private int getComponentId(IComponent component) {
+			return Preconditions.checkNotNull(getKeyByValue(_refs, component),
+					"This component has not been yet registered " + component);
+		}
+
+		private <K> K getKeyByValue(Map<K, ?> map, Object value) {
+			for (Entry<K, ?> entry : map.entrySet()) {
+				if (value.equals(entry.getValue())) {
+					return entry.getKey();
+				}
+			}
+			return null;
 		}
 
 	}

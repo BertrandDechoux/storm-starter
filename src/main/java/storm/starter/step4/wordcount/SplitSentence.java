@@ -14,6 +14,10 @@ public class SplitSentence extends ShellBolt implements IRichBolt {
 
 	@Override
 	public void declareOutputFields(final OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("word"));
+		declarer.declare(new Fields(getField()));
+	}
+	
+	public String getField() {
+		return "word";
 	}
 }
