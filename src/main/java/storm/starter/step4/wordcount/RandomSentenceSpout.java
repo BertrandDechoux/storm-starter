@@ -14,8 +14,8 @@ import backtype.storm.utils.Utils;
 public class RandomSentenceSpout implements IRichSpout {
 	private static final long serialVersionUID = 1L;
 
-	SpoutOutputCollector _collector;
-	Random _rand;
+	private SpoutOutputCollector collector;
+	private Random rand;
 
 	@Override
 	public boolean isDistributed() {
@@ -25,8 +25,8 @@ public class RandomSentenceSpout implements IRichSpout {
 	@Override
 	public void open(@SuppressWarnings("rawtypes") final Map conf, final TopologyContext context,
 			final SpoutOutputCollector collector) {
-		_collector = collector;
-		_rand = new Random();
+		this.collector = collector;
+		rand = new Random();
 	}
 
 	@Override
@@ -35,8 +35,8 @@ public class RandomSentenceSpout implements IRichSpout {
 		final String[] sentences = new String[] { "the cow jumped over the moon",
 				"an apple a day keeps the doctor away", "four score and seven years ago",
 				"snow white and the seven dwarfs", "i am at two with nature" };
-		final String sentence = sentences[_rand.nextInt(sentences.length)];
-		_collector.emit(new Values(sentence));
+		final String sentence = sentences[rand.nextInt(sentences.length)];
+		collector.emit(new Values(sentence));
 	}
 
 	@Override

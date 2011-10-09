@@ -13,7 +13,7 @@ import backtype.storm.tuple.Values;
 
 public class WordCount implements IBasicBolt {
 	private static final long serialVersionUID = 1L;
-	Map<String, Integer> counts = new HashMap<String, Integer>();
+	private final Map<String, Integer> counts = new HashMap<String, Integer>();
 
 	@Override
 	public void prepare(@SuppressWarnings("rawtypes") final Map conf, final TopologyContext context) {
