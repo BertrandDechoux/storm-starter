@@ -17,8 +17,6 @@ import backtype.storm.utils.Utils;
 public class RollingCountObjects implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 	
-	public static final String OBJ_FIELD = "obj";
-
 	private final HashMap<Object, long[]> objectCounts = new HashMap<Object, long[]>();
 	private final int numBuckets;
 	private transient Thread cleaner;
@@ -85,7 +83,11 @@ public class RollingCountObjects implements IRichBolt {
 
 	@Override
 	public void declareOutputFields(final OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields(OBJ_FIELD, "count"));
+		declarer.declare(new Fields(getField(), "count"));
+	}
+
+	public String getField() {
+		return "obj";
 	}
 
 	private final class CleanerRunnable implements Runnable {
