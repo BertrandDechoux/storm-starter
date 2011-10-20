@@ -1,4 +1,4 @@
-package storm.starter.step3.topwords;
+package storm.starter.step3.topology;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -13,7 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import storm.starter.step3.topologie.RollingCountObjects;
+import storm.starter.step3.topology.RollingCountObjects;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;

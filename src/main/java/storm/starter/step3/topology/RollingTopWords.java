@@ -1,4 +1,4 @@
-package storm.starter.step3.topologie;
+package storm.starter.step3.topology;
 
 import static storm.starter.ClusterHelper.localClusterWith;
 import storm.starter.TopologyBuilder;

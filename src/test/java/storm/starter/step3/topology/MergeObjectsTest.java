@@ -1,4 +1,4 @@
-package storm.starter.step3.topwords;
+package storm.starter.step3.topology;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.times;
@@ -14,9 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import storm.starter.step3.topologie.MergeObjects;
-
-import com.google.common.collect.Lists;
+import storm.starter.step3.topology.MergeObjects;
 
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.BasicOutputCollector;

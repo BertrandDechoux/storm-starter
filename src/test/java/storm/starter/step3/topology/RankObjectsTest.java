@@ -1,4 +1,4 @@
-package storm.starter.step3.topwords;
+package storm.starter.step3.topology;
 
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import storm.starter.step3.topologie.RankObjects;
+import storm.starter.step3.topology.RankObjects;
 
 import com.google.common.collect.Lists;
 
