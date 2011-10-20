@@ -14,6 +14,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import storm.starter.step3.topologie.MergeObjects;
+
 import com.google.common.collect.Lists;
 
 import backtype.storm.task.TopologyContext;

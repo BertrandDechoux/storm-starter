@@ -17,6 +17,10 @@
 			<name>Twitter Maven Repository</name>
 			<url>http://twitter4j.org/maven2</url>
 		</repository>
+		<repository>
+			<id>clojars</id>
+			<url>http://clojars.org/repo/</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
@@ -31,14 +35,14 @@
 			<version>1.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>backtype</groupId>
+			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-core</artifactId>
-			<version>2.2.4-SNAPSHOT</version>
+			<version>2.2.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-stream</artifactId>
-			<version>2.2.4-SNAPSHOT</version>
+			<version>2.2.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
