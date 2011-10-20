@@ -1,4 +1,4 @@
-package storm.starter.step4.wordcount;
+package storm.starter.step4.multilang;
 
 import backtype.storm.task.ShellBolt;
 import backtype.storm.topology.IRichBolt;

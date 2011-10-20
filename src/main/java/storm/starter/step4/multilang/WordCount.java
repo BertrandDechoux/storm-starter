@@ -1,4 +1,4 @@
-package storm.starter.step4.wordcount;
+package storm.starter.step4.multilang;
 
 import java.util.HashMap;
 import java.util.Map;

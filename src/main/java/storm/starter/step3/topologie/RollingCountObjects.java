@@ -1,4 +1,4 @@
-package storm.starter.step3.topwords;
+package storm.starter.step3.topologie;
 
 import java.util.HashMap;
 import java.util.HashSet;
