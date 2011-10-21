@@ -1,4 +1,4 @@
-package storm.starter.step2.spout;
+package storm.starter.step1.spout;
 
 
 public class TwitterSampleSpoutTest {

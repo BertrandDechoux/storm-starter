@@ -1,4 +1,4 @@
-package storm.starter.step1.bolt;
+package storm.starter.step2.bolt;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
@@ -13,6 +13,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import storm.starter.step2.bolt.ExclamationBolt;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;

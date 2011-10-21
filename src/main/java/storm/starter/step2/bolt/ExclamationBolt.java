@@ -1,4 +1,4 @@
-package storm.starter.step1.bolt;
+package storm.starter.step2.bolt;
 
 import java.util.Map;
 

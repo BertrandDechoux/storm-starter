@@ -1,4 +1,4 @@
-package storm.starter.step2.spout;
+package storm.starter.step1.spout;
 
 import static storm.starter.ClusterHelper.localClusterWith;
 import storm.starter.TopologyBuilder;
