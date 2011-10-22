@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
+
+import storm.starter.step3.topology.MergeObjects;
+
 import backtype.storm.generated.StormTopology;
 import backtype.storm.topology.IBasicBolt;
 import backtype.storm.topology.IComponent;
@@ -19,6 +23,7 @@ import com.google.common.base.Preconditions;
  * id by itself. </p>
  */
 public class TopologyBuilder {
+	private static Logger LOGGER = Logger.getLogger(MergeObjects.class);
 	private final backtype.storm.topology.TopologyBuilder topologyBuilder = new backtype.storm.topology.TopologyBuilder();
 	private final Map<Integer, IComponent> references = new HashMap<Integer, IComponent>();
 	private int nextId = 1;
@@ -127,6 +132,7 @@ public class TopologyBuilder {
 	private int getNextIdFor(final IComponent component) {
 		final int id = nextId;
 		nextId++;
+		LOGGER.info("Assign id "+id + " to component "+component.getClass().getSimpleName());
 		references.put(id, component);
 		return id;
 	}
