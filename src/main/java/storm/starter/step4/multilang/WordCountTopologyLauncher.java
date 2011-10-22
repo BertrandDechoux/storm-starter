@@ -1,11 +1,11 @@
 package storm.starter.step4.multilang;
 
-import static storm.starter.ClusterHelper.localClusterWith;
-import storm.starter.TopologyBuilder;
+import static storm.starter.utils.ClusterHelper.aClusterWith;
+import storm.starter.utils.TopologyBuilder;
 import backtype.storm.topology.IBasicBolt;
 import backtype.storm.topology.IRichSpout;
 
-public class WordCountTopology {
+public class WordCountTopologyLauncher {
 	public static void main(final String[] args) throws Exception {
 		final TopologyBuilder topology = new TopologyBuilder();
 		
@@ -17,7 +17,7 @@ public class WordCountTopology {
 		topology.setBolt(splitSentence, 8).shuffleGrouping(randomSentenceSpout);
 		topology.setBolt(wordCount, 12).fieldsGrouping(splitSentence, splitSentence.getField());
 		
-		localClusterWith(topology).maxTaskParallelism(3).debug();
+		aClusterWith(topology).andMaxTaskParallelism(3).debugAsLocal();
 
 	}
 }

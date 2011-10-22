@@ -1,12 +1,12 @@
 package storm.starter.step3.topology;
 
-import static storm.starter.ClusterHelper.localClusterWith;
-import storm.starter.TopologyBuilder;
+import static storm.starter.utils.ClusterHelper.aClusterWith;
+import storm.starter.utils.TopologyBuilder;
 import backtype.storm.testing.TestWordSpout;
 import backtype.storm.topology.IBasicBolt;
 import backtype.storm.topology.IRichSpout;
 
-public class RollingTopWords {
+public class RollingTopWordsLauncher {
 	private static final int NUM_BUCKETS = 60;
 	private static final int TRACK_MINUTES = 10;
 	private static final int TOP_N = 3;
@@ -26,6 +26,6 @@ public class RollingTopWords {
 		topology.setBolt(rankObjects, 4).fieldsGrouping(rollingCountObjects, rollingCountObjects.getField());
 		topology.setBolt(mergeObjects).globalGrouping(rankObjects);
 
-		localClusterWith(topology).run();
+		aClusterWith(topology).runAsLocal();
 	}
 }

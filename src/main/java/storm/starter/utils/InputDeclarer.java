@@ -1,4 +1,4 @@
-package storm.starter;
+package storm.starter.utils;
 
 import backtype.storm.topology.IComponent;
 import backtype.storm.tuple.Fields;

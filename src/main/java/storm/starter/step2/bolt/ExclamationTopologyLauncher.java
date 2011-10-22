@@ -1,12 +1,12 @@
 package storm.starter.step2.bolt;
 
-import static storm.starter.ClusterHelper.localClusterWith;
-import storm.starter.TopologyBuilder;
+import static storm.starter.utils.ClusterHelper.aClusterWith;
+import storm.starter.utils.TopologyBuilder;
 import backtype.storm.testing.TestWordSpout;
 import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.IRichSpout;
 
-public class ExclamationTopology {
+public class ExclamationTopologyLauncher {
 
 	public static void main(final String[] args) {
 		final TopologyBuilder topology = new TopologyBuilder();
@@ -19,7 +19,7 @@ public class ExclamationTopology {
 		topology.setBolt(exclamationBolt1, 3).shuffleGrouping(testWordSpout);
 		topology.setBolt(exclamationBolt2, 2).shuffleGrouping(exclamationBolt1);
 
-		localClusterWith(topology).debug();
+		aClusterWith(topology).debugAsLocal();
 	}
 	
 }
