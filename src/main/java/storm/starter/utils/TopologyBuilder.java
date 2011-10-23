@@ -116,7 +116,7 @@ public class TopologyBuilder {
 	 *            the spout
 	 */
 	public void setSpout(IRichSpout spout, Integer parallelism_hint) {
-		topologyBuilder.setSpout(getNextIdFor(spout), spout);
+		topologyBuilder.setSpout(getNextIdFor(spout), spout, parallelism_hint);
 	}
 
 	public void setStateSpout(IRichStateSpout stateSpout) {
